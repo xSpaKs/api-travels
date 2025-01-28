@@ -13,12 +13,14 @@ Cette API permet de gérer les utilisateurs, les voyages et les objets associés
 -   Node.js
 -   MySQL
 -   dotenv pour la gestion des variables d'environnement
+-   zod pour la validation des données
+-   jwt pour l'authentification par token
 
 ## Installation
 
 ### Clonez ce projet sur votre machine.
 
--   git clone <url-du-repository>
+-   git clone [<url-du-repository>](https://github.com/xSpaKs/api-travels)
 
 ### Installez les dépendances nécessaires avec npm ou yarn.
 
