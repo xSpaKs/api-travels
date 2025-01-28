@@ -20,7 +20,7 @@ Cette API permet de gérer les utilisateurs, les voyages et les objets associés
 
 ### Clonez ce projet sur votre machine.
 
--   git clone [<url-du-repository>](https://github.com/xSpaKs/api-travels)
+-   git clone https://github.com/xSpaKs/api-travels
 
 ### Installez les dépendances nécessaires avec npm ou yarn.
 
