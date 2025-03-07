@@ -1,11 +1,11 @@
 # API de gestion des voyages et des utilisateurs
 
-Cette API permet de gérer les utilisateurs, les voyages et les objets associés aux voyages. Elle permet également d'effectuer l'inscription, la connexion, ainsi que la gestion des voyages et des objets au sein de chaque voyage.
+Cette API permet de gérer des utilisateurs (création de compte et connexion), des voyages (création) et les objets associés aux voyages (création, suppression, modification).
 
 ## Fonctionnalités
 
 -   Utilisateur : Inscription, connexion, récupération des informations d'un utilisateur par son ID.
--   Voyages : Création, récupération, modification et suppression de voyages.
+-   Voyages : Création et récupération de voyages.
 -   Objets : Ajout, modification, suppression et récupération des objets associés à un voyage.
 
 ## Prérequis
