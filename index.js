@@ -1,24 +1,30 @@
-import express from "express";
-import mysql from "mysql2";
-import dotenv from "dotenv";
+const express = require("express");
+const mysql = require("mysql2");
+const dotenv = require("dotenv");
 
-import getUserByID from "./routes/routes.user.js";
-import { register, login } from "./routes/routes.auth.js";
-import verifyJWT from "./middlewares/verifyJwt.js";
-import { getTravel, createTravel, getTravels } from "./routes/routes.travel.js";
-import {
+const verifyJWT = require("./middlewares/verifyJwt.js");
+
+const getUserByID = require("./routes/routes.user.js");
+const { register, login } = require("./routes/routes.auth.js");
+const {
+    getTravel,
+    createTravel,
+    getTravels,
+} = require("./routes/routes.travel.js");
+const {
     modifyItem,
     deleteItem,
     getItemsFromTravel,
     addItemToTravel,
-} from "./routes/routes.item.js";
+} = require("./routes/routes.item.js");
 
 const app = express();
-const port = 3000;
+const port = 3001;
 dotenv.config();
 
 app.use(express.json());
 
+// Connexion à la base de données MySQL via le package mysql2
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -31,59 +37,62 @@ db.connect((err) => {
         console.error("Erreur de connexion à la base de données:", err);
         return;
     }
-    console.log("Connexion à la base de données réussie");
 });
 
+// Route pour récupérer les informations d'un utilsateur
 app.get("/users/:id", (req, res) => {
-    console.log("GET request on /users/:id");
     getUserByID(db, req, res);
 });
 
+// Route pour créer un compte
 app.post("/register", (req, res) => {
-    console.log("POST request on /register");
     register(db, req, res);
 });
 
+// Route pour se connecter
 app.post("/login", (req, res) => {
-    console.log("POST request on /login");
     login(db, req, res);
 });
 
+// Route pour récupérer tous les voyages
 app.get("/travels", verifyJWT, (req, res) => {
-    console.log("GET request on /travels");
     getTravels(db, req, res);
 });
 
+// Route pour créer un voyage
 app.post("/travels", verifyJWT, (req, res) => {
-    console.log("POST request on /travels");
     createTravel(db, req, res);
 });
 
+// Route pour récupérer un voyage
 app.get("/travels/:id", verifyJWT, (req, res) => {
-    console.log("GET request on /travels/:id");
     getTravel(db, req, res);
 });
 
+// Route pour modifier un item
 app.put("/items/:id", verifyJWT, (req, res) => {
-    console.log("PUT request on /items/:id");
     modifyItem(db, req, res);
 });
 
+// Route pour supprimer un item
 app.delete("/items/:id", verifyJWT, (req, res) => {
-    console.log("DELETE request on /items/:id");
     deleteItem(db, req, res);
 });
 
+// Route pour récupérer les items d'un voyage
 app.get("/travels/:id/items", verifyJWT, (req, res) => {
-    console.log("GET request on /travels/:id/items");
     getItemsFromTravel(db, req, res);
 });
 
+// Route pour ajouter un item à un voyage
 app.post("/travels/:id/items", verifyJWT, (req, res) => {
-    console.log("POST request on /travels/:id/items");
     addItemToTravel(db, req, res);
 });
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
-});
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Example app listening on port ${port}`);
+    });
+}
+
+module.exports = { app, db };

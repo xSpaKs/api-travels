@@ -1,4 +1,5 @@
-import { z } from "zod";
+const { z } = require("zod");
+const fetch = require("node-fetch");
 
 const modifyItem = (db, req, res) => {
     const { id } = req.params;
@@ -29,14 +30,24 @@ const modifyItem = (db, req, res) => {
         return res.status(422).json({ errors: err.errors });
     }
 
-    const query =
-        "UPDATE item SET name = ?, quantity = ?, isTaken = ? WHERE id = ?";
-    db.query(query, [name, quantity, isTaken, id], (err, results) => {
-        if (results.affectedRows > 0) {
-            return res.status(200).json({ message: "Item updated" });
-        } else {
+    // DB Queries
+    const selectQuery = "SELECT * FROM item WHERE id = ?";
+    db.query(selectQuery, [id], (err, results) => {
+        if (results.length == 0) {
             return res.status(404).json({ message: "Item not found" });
         }
+
+        if (results[0].user_id != req.user.id) {
+            return res
+                .status(403)
+                .json({ message: "Forbidden access to this resource" });
+        }
+
+        const updateQuery =
+            "UPDATE item SET name = ?, quantity = ?, isTaken = ? WHERE id = ?";
+        db.query(updateQuery, [name, quantity, isTaken, id], (err, results) => {
+            return res.status(200).json({ message: "Item updated" });
+        });
     });
 };
 
@@ -62,13 +73,22 @@ const deleteItem = (db, req, res) => {
         return res.status(422).json({ message: "Item ID must be an integer" });
     }
 
-    const query = "DELETE FROM item WHERE id = ?";
-    db.query(query, [id], (err, results) => {
-        if (results.length > 0) {
-            return res.status(200).json({ message: "Item deleted" });
-        } else {
+    const selectQuery = "SELECT user_id from item where id = ?";
+    db.query(selectQuery, [id], (err, results) => {
+        if (results.length == 0) {
             return res.status(404).json({ message: "Item not found" });
         }
+
+        if (results[0].user_id != req.user.id) {
+            return res
+                .status(403)
+                .json({ message: "Forbidden access to this resource" });
+        }
+
+        const deleteQuery = "DELETE FROM item WHERE id = ?";
+        db.query(deleteQuery, [id], (err, results) => {
+            return res.status(200).json({ message: "Item deleted" });
+        });
     });
 };
 
@@ -143,12 +163,19 @@ const addItemToTravel = async (db, req, res) => {
 
     // DB Query
     const query =
-        "INSERT INTO item (travel_id, name, quantity, isTaken) VALUES (?, ?, ?, ?)";
-    db.query(query, [json.travel.id, name, quantity, isTaken], (err) => {
-        return err
-            ? res.status(201).json({ error: err })
-            : res.status(201).json({ message: "Item created" });
-    });
+        "INSERT INTO item (travel_id, name, quantity, isTaken, user_id) VALUES (?, ?, ?, ?, ?)";
+    db.query(
+        query,
+        [json.travel.id, name, quantity, isTaken, req.user.id],
+        (err) => {
+            return res.status(201).json({ message: "Item created" });
+        }
+    );
 };
 
-export { modifyItem, deleteItem, getItemsFromTravel, addItemToTravel };
+module.exports = {
+    modifyItem,
+    deleteItem,
+    getItemsFromTravel,
+    addItemToTravel,
+};

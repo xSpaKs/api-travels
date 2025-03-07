@@ -1,4 +1,4 @@
-import { z } from "zod";
+const { z } = require("zod");
 
 const getTravel = (db, req, res) => {
     const { id } = req.params;
@@ -24,10 +24,17 @@ const getTravel = (db, req, res) => {
             .json({ message: "Travel ID must be an integer" });
     }
 
+    // DB Query
     const query = "SELECT * FROM travel WHERE id = ?";
     db.query(query, [id], (err, results) => {
         if (results.length > 0) {
-            return res.status(200).json({ travel: results[0] });
+            if (results[0].user_id != req.user.id) {
+                return res
+                    .status(403)
+                    .json({ message: "Forbidden access to this resource" });
+            } else {
+                return res.status(200).json({ travel: results[0] });
+            }
         } else {
             return res.status(404).json({ message: "Travel not found" });
         }
@@ -35,8 +42,8 @@ const getTravel = (db, req, res) => {
 };
 
 const getTravels = (db, req, res) => {
-    const query = "SELECT * FROM travel";
-    db.query(query, (err, results) => {
+    const query = "SELECT * FROM travel where user_id = ?";
+    db.query(query, [req.user.id], (err, results) => {
         if (!err) {
             return res.status(200).json({ travels: results });
         }
@@ -53,15 +60,19 @@ const createTravel = (db, req, res) => {
             .json({ message: "Missing required information" });
     }
 
-    const travelSchema = z.object({
-        destination: z.string().min(1, "Destination is required"),
-        start_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
-            message: "Start date must be a valid date in the format YYYY-MM-DD",
-        }),
-        end_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
-            message: "End date must be a valid date in the format YYYY-MM-DD",
-        }),
-    });
+    const travelSchema = z
+        .object({
+            destination: z.string().min(1, "Destination is required"),
+            start_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
+                message: "Start date has invalid format (must be YYYY-MM-DD)",
+            }),
+            end_date: z.string().refine((val) => !isNaN(Date.parse(val)), {
+                message: "End date has invalid format (must be YYYY-MM-DD)",
+            }),
+        })
+        .refine((data) => new Date(data.start_date) < new Date(data.end_date), {
+            message: "Start date must be before end date",
+        });
 
     try {
         travelSchema.parse({
@@ -75,17 +86,21 @@ const createTravel = (db, req, res) => {
 
     // DB Query
     const query =
-        "INSERT INTO travel (destination, start_date, end_date) VALUES (?, ?, ?)";
+        "INSERT INTO travel (destination, start_date, end_date, user_id) VALUES (?, ?, ?, ?)";
 
     try {
-        db.query(query, [destination, start_date, end_date], (err) => {
-            if (!err) {
-                return res.status(201).json({ message: "Travel created" });
+        db.query(
+            query,
+            [destination, start_date, end_date, req.user.id],
+            (err) => {
+                if (!err) {
+                    return res.status(201).json({ message: "Travel created" });
+                }
             }
-        });
+        );
     } catch (error) {
         return res.status(400).json({ message: error });
     }
 };
 
-export { getTravel, getTravels, createTravel };
+module.exports = { getTravel, getTravels, createTravel };

@@ -1,7 +1,7 @@
-import crypto from "crypto";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-import { z } from "zod";
+const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+const { z } = require("zod");
 
 dotenv.config();
 
@@ -27,7 +27,7 @@ const register = (db, req, res) => {
     try {
         userSchema.parse({ email: email, password: password });
     } catch (err) {
-        return res.status(422).json({ message: err.errors[0].message });
+        return res.status(422).json({ message: err.errors });
     }
 
     // Hash
@@ -73,7 +73,7 @@ const login = (db, req, res) => {
     try {
         userSchema.parse({ email: email, password: password });
     } catch (err) {
-        return res.status(422).json({ message: err.errors[0].message });
+        return res.status(422).json({ message: err.errors });
     }
 
     // Hash
@@ -99,4 +99,4 @@ const login = (db, req, res) => {
     });
 };
 
-export { register, login };
+module.exports = { register, login };

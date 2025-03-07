@@ -23,4 +23,4 @@ const getUserByID = (db, req, res) => {
     });
 };
 
-export default getUserByID;
+module.exports = getUserByID;
